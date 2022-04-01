@@ -1,38 +1,44 @@
-
 #define Laser 12
-#define SPEED 2
-
+#define SPEED 50
+int Byte = 0;
 void setup() {
   pinMode(Laser, OUTPUT);
   Serial.begin(9600);
 }
 
 void loop() {
-  Serial.println("get ready ...");
-  getReady(); 
-  Serial.println("\n pushing data ...");
-  pushData(0b10010101, 8);
-  Serial.println(" \n waiting ..."); 
-  delay(4000); 
+  if (Serial.available() > 0){
+    Serial.println("get ready ...");
+    getReady(Serial.available());
+    while(Serial.available() > 0){
+      Byte = Serial.read();
+      Serial.println("pushing data ...");
+      pushData(Byte);
+    }
+  }
+  //Serial.println("\nwaiting ..."); 
+  delay(50); 
     
 }
 
-void getReady(){
-  int wake = 0b10101101;
-  for(int i=7; i >= 0; i--){
-     digitalWrite(Laser, bitRead(wake,i));
-     Serial.print(bitRead(wake,i), DEC);   
+void getReady(int startByte){
+  bitWrite(startByte, 8, 1);
+  for(int i=8; i >= 0; i--){
+     digitalWrite(Laser, bitRead(startByte,i));
+     Serial.print(bitRead(startByte,i), DEC);   
      delay(SPEED);
   }
+  Serial.print("\n");
 }
 
-void pushData(int frame, int frameSize){
+void pushData(int Byte){
   
-  for(int i=frameSize-1; i >= 0; i--){
-     digitalWrite(Laser, bitRead(frame,i));
-     Serial.print(bitRead(frame,i), DEC);   
+  for(int i=7; i >= 0; i--){
+     digitalWrite(Laser, bitRead(Byte,i));
+     Serial.print(bitRead(Byte,i), DEC);   
      delay(SPEED);
   }
+  Serial.print("\n");
   digitalWrite(Laser,LOW);
 
 }

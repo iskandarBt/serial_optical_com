@@ -1,48 +1,52 @@
 
-#define SPEED 2
+#define SPEED 50  // time to send 1 bit (in ms)
+int byteNumber = 0;
 
-int i = 0;
-int wake = 0b10101101;
+char data[20];
+//char *p = data;
+
+
 void setup() {
   Serial.begin(9600);
 }
 
 void loop() {
-  bool match = false;
   if(digitalRead(A5)==HIGH){
-    delay(1);
-    match = checkSender();
-    Serial.println(match ? "true" : "false");
+    Serial.println("wokeup !\n");
+    delay(SPEED + (SPEED/2)); // delay to read in the middle of the pulse
+    byteNumber = readStartByte();
+    readData(byteNumber);
+    Serial.println(data);
+    data[0] = '\0';
   }
-  if(match){
-    readData(8);
-  }
+
 }
 
-bool checkSender(){
-  bool match = false;
-  
+
+int readStartByte(){
+  // Read the start byte and return the number of bytes in the data frame
+  int byteNumber = 0;
+  Serial.println("ReadByte function.\n");
   for(int i=7; i>=0; i--){
-    if(digitalRead(A5) == bitRead(wake,i)){
-      Serial.print(digitalRead(A5)); // for debug
-      match = true;
-    }
-    else{
-      match =false;
-      return match;
-    }
-    
+    bitWrite(byteNumber, i,digitalRead(A5)); 
+    //Serial.print(digitalRead(A5)); // for debug  
     delay(SPEED);
   }
-  Serial.println(" ");
-  return match;
-  
+  //Serial.println("\n");
+  return byteNumber;
+   
 }
 
-void readData(int frameSize){
-  for(int i=0; i <= frameSize-1; i++){
-    Serial.print(digitalRead(A5));
-    delay(SPEED);  
+char readData(int byteNumber){
+  
+  Serial.println("ReadData function.\n");
+  for(int y=0; y < byteNumber; y++){
+    for(int i=0; i <= 7; i++){
+      bitWrite(data[y], 7-i, digitalRead(A5));
+      //Serial.print(digitalRead(A5));
+      delay(SPEED); 
+    }
+    //Serial.println(" "); 
   }
-  Serial.println(" ");
+    
 }
